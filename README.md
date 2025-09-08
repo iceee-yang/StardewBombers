@@ -2,13 +2,13 @@
 Project for 2025 CSU-SE Java traning
 ## 一、项目架构
     ···
-    BombFarmGame/  
+    StardewBombers/  
     ├── pom.xml                           # Maven配置文件  
     ├── src/
     │   ├── main/
     │   │   ├── java/
-    │   │   │   └── com/bombfarm/
-    │   │   │       ├── BombFarmApp.java  # 主启动类
+    │   │   │   └── com/stardewbombers/
+    │   │   │       ├── StardewBombersApp.java  # 主启动类
     │   │   │       ├── client/           # 客户端模块
     │   │   │       │   ├── GameClient.java
     │   │   │       │   ├── ui/           # UI界面
