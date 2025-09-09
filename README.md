@@ -1,5 +1,5 @@
 # StardewBombers
-Project for 2025 CSU-SE Java traning
+Project for 2025 CSU-SE Java training
 #### 项目介绍
 这是一款基于“Q版泡泡堂”玩法、融合“星露谷物语”农场系统与美术元素的多人联机小游戏，使用基于JavaFX的FXGL框架开发。核心玩法主要为躲避危险，放置炸弹把其他玩家炸死，最终获得游戏胜利。附带了农场系统，玩家进行游戏对局可获得“种子”，种子在农场播种后可收获农作物，农作物可作为局内道具在游戏对局中带来增益效果。
 #### 项目架构
@@ -108,4 +108,8 @@ Project for 2025 CSU-SE Java traning
   - 农场视图接口IFarmView
 
 #### 参与贡献
-- 
+- iceee-yang
+- CallMeWangDaoZhang
+- ningshuaiming
+- Leecream
+- fxw827510
