@@ -1,4 +1,8 @@
 package com.stardewbombers.shared.enums;
 
-public class PowerUpType {
+public enum PowerUpType {
+	SPEED_BOOST,
+	SHIELD,
+	BOMB_COUNT,
+	BOMB_POWER
 }

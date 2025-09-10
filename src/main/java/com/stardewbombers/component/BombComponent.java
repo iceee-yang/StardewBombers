@@ -1,5 +1,6 @@
 package com.stardewbombers.component;
 
+
 import com.stardewbombers.shared.entity.Bomb;
 
 /**
@@ -127,3 +128,4 @@ public class BombComponent {
         this.bomb = bomb;
     }
 }
+
