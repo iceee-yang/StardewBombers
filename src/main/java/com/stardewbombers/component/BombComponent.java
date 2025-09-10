@@ -1,131 +1,143 @@
 package com.stardewbombers.component;
 
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javafx.geometry.Point2D;
 import com.stardewbombers.shared.entity.Bomb;
 
 /**
- * 炸弹组件类
- * 负责炸弹的爆炸逻辑和状态更新
+ * 炸弹组件类 - 管理玩家的炸弹系统
+ * 释放模式：同一时间只能存在 1 个炸弹；必须等爆炸/结束后才能放新的
+ * 包含：网格吸附、爆炸范围计算
  */
 public class BombComponent {
+	private final String ownerId;
+	private int bombPower;
+	private final List<Bomb> activeBombs = new ArrayList<>();
+	private final int gridSize = 50; // 网格大小
 
-    private Bomb bomb;
+	public BombComponent(String ownerId, int bombCount, int bombPower) {
+		this.ownerId = ownerId;
+		this.bombPower = bombPower;
+	}
 
-    public BombComponent(Bomb bomb) {
-        this.bomb = bomb;
-    }
+	// 基础属性访问
+	public int getBombPower() { return bombPower; }
+	public void setBombPower(int power) { this.bombPower = power; }
+	public List<Bomb> getActiveBombs() { return activeBombs; }
 
-    /**
-     * 更新炸弹状态
-     * @param deltaTime 时间增量（秒）
-     */
-    public void update(double deltaTime) {
-        if (bomb.getState() == Bomb.BombState.TICKING) {
-            double newFuseTime = bomb.getFuseTime() - deltaTime;
-            bomb.setFuseTime(newFuseTime);
+	/**
+	 * 放置炸弹（自动网格吸附）
+	 */
+	public boolean placeBomb(Point2D worldPosition, long nowMs) {
+		// 仅允许同一时间存在 1 个炸弹
+		if (!activeBombs.isEmpty()) return false;
+		
+		// 网格吸附
+		int gridX = (int) Math.round(worldPosition.getX() / gridSize);
+		int gridY = (int) Math.round(worldPosition.getY() / gridSize);
+		
+		Bomb bomb = new Bomb(gridX, gridY, ownerId);
+		bomb.setExplosionRadius(bombPower);
+		bomb.startTicking();
+		activeBombs.add(bomb);
+		return true;
+	}
 
-            // 检查是否应该爆炸
-            if (newFuseTime <= 0) {
-                bomb.explode();
-            }
-        } else if (bomb.getState() == Bomb.BombState.EXPLODING) {
-            // 检查爆炸是否结束
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - bomb.getExplosionStartTime() >= bomb.getExplosionDuration() * 1000) {
-                bomb.setState(Bomb.BombState.EXPLODED);
-                bomb.setHasExploded(true);
-            }
-        }
-    }
+	/**
+	 * 更新所有炸弹状态
+	 */
+	public List<Bomb> tick(long nowMs) {
+		List<Bomb> exploded = new ArrayList<>();
+		Iterator<Bomb> it = activeBombs.iterator();
+		
+		while (it.hasNext()) {
+			Bomb bomb = it.next();
+			
+			// 更新倒计时
+			if (bomb.getState() == Bomb.BombState.TICKING) {
+				double deltaTime = 0.016; // 固定步长，后续可由调用方传入
+				double newFuseTime = bomb.getFuseTime() - deltaTime;
+				bomb.setFuseTime(newFuseTime);
+				
+				if (newFuseTime <= 0) {
+					bomb.explode();
+				}
+			}
+			
+			// 检查爆炸状态
+			if (bomb.getState() == Bomb.BombState.EXPLODING) {
+				long currentTime = System.currentTimeMillis();
+				if (currentTime - bomb.getExplosionStartTime() >= bomb.getExplosionDuration() * 1000) {
+					bomb.setState(Bomb.BombState.EXPLODED);
+					bomb.setHasExploded(true);
+					exploded.add(bomb);
+					it.remove();
+				}
+			}
+		}
+		
+		return exploded;
+	}
 
-    /**
-     * 获取爆炸影响的范围（十字形）
-     * @return 返回受影响的位置数组 [x1, y1, x2, y2, ...]
-     */
-    public int[] getExplosionRange() {
-        int radius = bomb.getExplosionRadius();
-        int centerX = bomb.getX();
-        int centerY = bomb.getY();
+	/**
+	 * 获取爆炸影响范围（十字形）
+	 */
+	public List<Point2D> getExplosionRange(Bomb bomb) {
+		List<Point2D> affectedPositions = new ArrayList<>();
+		int radius = bomb.getExplosionRadius();
+		int centerX = bomb.getX();
+		int centerY = bomb.getY();
 
-        // 计算十字形爆炸范围
-        int[] affectedPositions = new int[(radius * 4 + 1) * 2]; // 上下左右各radius格 + 中心点
+		// 中心点
+		affectedPositions.add(new Point2D(centerX * gridSize, centerY * gridSize));
 
-        int index = 0;
+		// 四个方向
+		for (int i = 1; i <= radius; i++) {
+			affectedPositions.add(new Point2D(centerX * gridSize, (centerY - i) * gridSize)); // 上
+			affectedPositions.add(new Point2D(centerX * gridSize, (centerY + i) * gridSize)); // 下
+			affectedPositions.add(new Point2D((centerX - i) * gridSize, centerY * gridSize)); // 左
+			affectedPositions.add(new Point2D((centerX + i) * gridSize, centerY * gridSize)); // 右
+		}
 
-        // 中心点
-        affectedPositions[index++] = centerX;
-        affectedPositions[index++] = centerY;
+		return affectedPositions;
+	}
 
-        // 上方
-        for (int i = 1; i <= radius; i++) {
-            affectedPositions[index++] = centerX;
-            affectedPositions[index++] = centerY - i;
-        }
+	/**
+	 * 检查位置是否在爆炸范围内
+	 */
+	public boolean isInExplosionRange(Point2D targetPosition, Bomb bomb) {
+		List<Point2D> explosionRange = getExplosionRange(bomb);
+		int targetGridX = (int) Math.round(targetPosition.getX() / gridSize);
+		int targetGridY = (int) Math.round(targetPosition.getY() / gridSize);
+		
+		for (Point2D pos : explosionRange) {
+			int gridX = (int) Math.round(pos.getX() / gridSize);
+			int gridY = (int) Math.round(pos.getY() / gridSize);
+			if (gridX == targetGridX && gridY == targetGridY) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-        // 下方
-        for (int i = 1; i <= radius; i++) {
-            affectedPositions[index++] = centerX;
-            affectedPositions[index++] = centerY + i;
-        }
+	/**
+	 * 强制爆炸所有炸弹
+	 */
+	public void forceExplodeAll() {
+		for (Bomb bomb : activeBombs) {
+			if (bomb.getState() == Bomb.BombState.TICKING) {
+				bomb.explode();
+			}
+		}
+	}
 
-        // 左方
-        for (int i = 1; i <= radius; i++) {
-            affectedPositions[index++] = centerX - i;
-            affectedPositions[index++] = centerY;
-        }
-
-        // 右方
-        for (int i = 1; i <= radius; i++) {
-            affectedPositions[index++] = centerX + i;
-            affectedPositions[index++] = centerY;
-        }
-
-        return affectedPositions;
-    }
-
-    /**
-     * 检查位置是否在爆炸范围内
-     */
-    public boolean isInExplosionRange(int targetX, int targetY) {
-        int[] explosionRange = getExplosionRange();
-
-        for (int i = 0; i < explosionRange.length; i += 2) {
-            if (explosionRange[i] == targetX && explosionRange[i + 1] == targetY) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * 强制立即爆炸
-     */
-    public void forceExplode() {
-        bomb.explode();
-    }
-
-    /**
-     * 重置炸弹状态
-     */
-    public void reset() {
-        bomb.setState(Bomb.BombState.PLACED);
-        bomb.setFuseTime(bomb.getTotalFuseTime());
-        bomb.setHasExploded(false);
-    }
-
-    /**
-     * 获取炸弹实例
-     */
-    public Bomb getBomb() {
-        return bomb;
-    }
-
-    /**
-     * 设置炸弹实例
-     */
-    public void setBomb(Bomb bomb) {
-        this.bomb = bomb;
-    }
+	/**
+	 * 清除所有炸弹
+	 */
+	public void clearAllBombs() {
+		activeBombs.clear();
+	}
 }
 

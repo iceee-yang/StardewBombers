@@ -2,6 +2,9 @@ package com.stardewbombers.component;
 
 import javafx.geometry.Point2D;
 import com.stardewbombers.shared.entity.Player;
+import com.stardewbombers.shared.entity.Bomb;
+import com.stardewbombers.shared.entity.ExplosionEvent;
+import java.util.List;
 
 public class PlayerComponent {
 	private final Player player;
@@ -26,6 +29,33 @@ public class PlayerComponent {
 	public boolean placeBomb(long nowMs) {
 		if (!player.isAlive()) return false;
 		return bombs.placeBomb(player.getPosition(), nowMs);
+	}
+
+	/**
+	 * 处理爆炸伤害
+	 */
+	public boolean handleExplosionDamage(ExplosionEvent explosionEvent) {
+		if (!player.isAlive()) return false;
+		
+		// 检查玩家是否在爆炸范围内
+		Point2D playerPos = player.getPosition();
+		boolean inRange = bombs.isInExplosionRange(playerPos, explosionEvent.getBomb());
+		
+		if (inRange) {
+			// 避免自己炸自己
+			if (!explosionEvent.getOwnerId().equals(player.getId())) {
+				return player.takeDamage(1, explosionEvent.getExplosionTime());
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * 检查玩家是否在爆炸范围内
+	 */
+	public boolean isInExplosionRange(ExplosionEvent explosionEvent) {
+		Point2D playerPos = player.getPosition();
+		return bombs.isInExplosionRange(playerPos, explosionEvent.getBomb());
 	}
 
 	public void tick(long nowMs) {

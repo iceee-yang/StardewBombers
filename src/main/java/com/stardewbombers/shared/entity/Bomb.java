@@ -16,7 +16,7 @@ public class Bomb {
 
     // 炸弹配置常量
     private static final double FUSE_TIME = 3.0;        // 引信时间：3秒
-    private static final int EXPLOSION_RADIUS = 4;      // 爆炸范围：4格（十字形）
+    private static final int DEFAULT_EXPLOSION_RADIUS = 1; // 默认爆炸范围：1格
 
     // 炸弹属性
     private int x, y;                    // 炸弹在网格中的位置
@@ -24,6 +24,7 @@ public class Bomb {
     private double fuseTime;             // 剩余引信时间
     private double totalFuseTime;        // 总引信时间
     private String ownerId;              // 炸弹拥有者ID
+    private int explosionRadius;         // 爆炸范围（可配置）
 
     // 爆炸相关
     private boolean hasExploded;         // 是否已爆炸
@@ -39,6 +40,7 @@ public class Bomb {
         this.fuseTime = totalFuseTime;
         this.hasExploded = false;
         this.explosionDuration = 0.5; // 爆炸持续0.5秒
+        this.explosionRadius = DEFAULT_EXPLOSION_RADIUS;
     }
 
     /**
@@ -118,7 +120,7 @@ public class Bomb {
     public double getFuseTime() { return fuseTime; }
     public double getTotalFuseTime() { return totalFuseTime; }
     public String getOwnerId() { return ownerId; }
-    public int getExplosionRadius() { return EXPLOSION_RADIUS; }
+    public int getExplosionRadius() { return explosionRadius; }
     public double getExplosionDuration() { return explosionDuration; }
     public long getExplosionStartTime() { return explosionStartTime; }
     public boolean isHasExploded() { return hasExploded; }
@@ -129,6 +131,7 @@ public class Bomb {
     public void setFuseTime(double fuseTime) { this.fuseTime = fuseTime; }
     public void setHasExploded(boolean hasExploded) { this.hasExploded = hasExploded; }
     public void setExplosionStartTime(long explosionStartTime) { this.explosionStartTime = explosionStartTime; }
+    public void setExplosionRadius(int explosionRadius) { this.explosionRadius = explosionRadius; }
 
     /**
      * 更新炸弹位置（用于逻辑同步）
