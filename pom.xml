@@ -17,48 +17,19 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.2</javafx.version>
-        <fxgl.version>21.1</fxgl.version>
+        <javafx.platform>win</javafx.platform>
     </properties>
 
-    <!-- 添加 JitPack 仓库以解析 FXGL 依赖（GitHub 发布包）。 -->
     <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
     </repositories>
 
     <dependencies>
-        <!-- FXGL（JitPack 坐标，注意大小写） -->
-        <dependency>
-            <groupId>com.github.AlmasB</groupId>
-            <artifactId>fxgl</artifactId>
-            <version>${fxgl.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.AlmasB</groupId>
-                    <artifactId>fxgl-samples</artifactId>
-                </exclusion>
-                <!-- 也可以排除所有可能引起问题的依赖 -->
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- JavaFX Controls -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
-        </dependency>
-
-        <!-- JavaFX Graphics (渲染) -->
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics</artifactId>
-            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <!-- JavaFX FXML -->
@@ -66,27 +37,15 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
-        <!-- JavaFX Media（音效/音乐，FXGL 常用） -->
+        <!-- JavaFX Graphics -->
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
+            <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-        </dependency>
-
-        <!-- JavaFX Base（基础模块） -->
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-base</artifactId>
-            <version>${javafx.version}</version>
-        </dependency>
-
-        <!-- Gson JSON处理库 -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
     </dependencies>
 
@@ -110,7 +69,6 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.stardewbombers.StardewBombersApp</mainClass>
-                    <launcher>stardew-bombers</launcher>
                 </configuration>
             </plugin>
 

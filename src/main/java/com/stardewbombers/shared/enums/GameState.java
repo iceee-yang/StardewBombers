@@ -1,4 +1,7 @@
 package com.stardewbombers.shared.enums;
 
-public class GameState {
+public enum GameState {
+	RUNNING,
+	PAUSED,
+	ENDED
 }
