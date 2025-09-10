@@ -1,4 +1,5 @@
 package com.stardewbombers.client.network;
 
-public class MessageHandler {
+public interface MessageHandler {
+    void handleMessage(String json);
 }
