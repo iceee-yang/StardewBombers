@@ -32,8 +32,19 @@
         <!-- FXGL（JitPack 坐标，注意大小写） -->
         <dependency>
             <groupId>com.github.AlmasB</groupId>
-            <artifactId>FXGL</artifactId>
+            <artifactId>fxgl</artifactId>
             <version>${fxgl.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.AlmasB</groupId>
+                    <artifactId>fxgl-samples</artifactId>
+                </exclusion>
+                <!-- 也可以排除所有可能引起问题的依赖 -->
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- JavaFX Controls -->
