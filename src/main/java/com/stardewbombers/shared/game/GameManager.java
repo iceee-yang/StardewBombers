@@ -3,7 +3,9 @@ package com.stardewbombers.shared.game;
 import javafx.geometry.Point2D;
 import com.stardewbombers.shared.entity.Bomb;
 import com.stardewbombers.shared.entity.ExplosionEvent;
+import com.stardewbombers.shared.entity.GameMap;
 import com.stardewbombers.component.PlayerComponent;
+import com.stardewbombers.server.game.CollisionDetector;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -15,12 +17,59 @@ public class GameManager {
     private final List<PlayerComponent> players = new ArrayList<>();
     private final List<ExplosionEvent> activeExplosions = new ArrayList<>();
     private final int gridSize = 50;
+    private GameMap gameMap;
+    private CollisionDetector collisionDetector;
+
+    /**
+     * 设置游戏地图
+     */
+    public void setGameMap(GameMap gameMap) {
+        this.gameMap = gameMap;
+        this.collisionDetector = new CollisionDetector(gameMap);
+        
+        // 为所有现有玩家设置碰撞检测器
+        for (PlayerComponent player : players) {
+            player.getMovement().setCollisionDetector(collisionDetector);
+        }
+    }
+    
+    /**
+     * 设置游戏地图（带缩放）
+     */
+    public void setGameMap(GameMap gameMap, double scale) {
+        this.gameMap = gameMap;
+        this.collisionDetector = new CollisionDetector(gameMap, scale);
+        
+        // 为所有现有玩家设置碰撞检测器
+        for (PlayerComponent player : players) {
+            player.getMovement().setCollisionDetector(collisionDetector);
+        }
+    }
+
+    /**
+     * 获取游戏地图
+     */
+    public GameMap getGameMap() {
+        return gameMap;
+    }
+
+    /**
+     * 获取碰撞检测器
+     */
+    public CollisionDetector getCollisionDetector() {
+        return collisionDetector;
+    }
 
     /**
      * 添加玩家
      */
     public void addPlayer(PlayerComponent playerComponent) {
         players.add(playerComponent);
+        
+        // 为新玩家设置碰撞检测器
+        if (collisionDetector != null) {
+            playerComponent.getMovement().setCollisionDetector(collisionDetector);
+        }
     }
 
     /**
@@ -44,8 +93,24 @@ public class GameManager {
             playerComponent.handleExplosionDamage(explosionEvent);
         }
 
-        // 处理对障碍物的影响（待实现）
-        // handleObstacleDamage(explosionEvent);
+        // 处理对地图方块的破坏
+        if (gameMap != null) {
+            handleMapDamage(explosionEvent);
+        }
+    }
+
+    /**
+     * 处理爆炸对地图方块的破坏
+     */
+    private void handleMapDamage(ExplosionEvent explosionEvent) {
+        for (Point2D pos : explosionEvent.getAffectedPositions()) {
+            // 将世界坐标转换为网格坐标
+            int gridX = (int) (pos.getX() / gridSize);
+            int gridY = (int) (pos.getY() / gridSize);
+            
+            // 破坏方块
+            gameMap.destroyBlock(gridX, gridY);
+        }
     }
 
     /**
@@ -60,12 +125,31 @@ public class GameManager {
         // 中心点
         affectedPositions.add(new Point2D(centerX * gridSize, centerY * gridSize));
 
-        // 四个方向
-        for (int i = 1; i <= radius; i++) {
-            affectedPositions.add(new Point2D(centerX * gridSize, (centerY - i) * gridSize)); // 上
-            affectedPositions.add(new Point2D(centerX * gridSize, (centerY + i) * gridSize)); // 下
-            affectedPositions.add(new Point2D((centerX - i) * gridSize, centerY * gridSize)); // 左
-            affectedPositions.add(new Point2D((centerX + i) * gridSize, centerY * gridSize)); // 右
+        // 四个方向，检查每个方向是否被阻挡
+        int[] directions = {-1, 1}; // -1: 上/左, 1: 下/右
+        
+        // 垂直方向（上下）
+        for (int dir : directions) {
+            for (int i = 1; i <= radius; i++) {
+                int checkY = centerY + (dir * i);
+                if (gameMap != null && !gameMap.isWalkable(centerX, checkY)) {
+                    // 遇到不可通行的方块，停止这个方向的爆炸
+                    break;
+                }
+                affectedPositions.add(new Point2D(centerX * gridSize, checkY * gridSize));
+            }
+        }
+        
+        // 水平方向（左右）
+        for (int dir : directions) {
+            for (int i = 1; i <= radius; i++) {
+                int checkX = centerX + (dir * i);
+                if (gameMap != null && !gameMap.isWalkable(checkX, centerY)) {
+                    // 遇到不可通行的方块，停止这个方向的爆炸
+                    break;
+                }
+                affectedPositions.add(new Point2D(checkX * gridSize, centerY * gridSize));
+            }
         }
 
         return affectedPositions;
