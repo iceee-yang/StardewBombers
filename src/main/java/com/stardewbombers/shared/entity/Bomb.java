@@ -20,6 +20,7 @@ public class Bomb {
 
     // 炸弹属性
     private int x, y;                    // 炸弹在网格中的位置
+    private double worldX, worldY;       // 炸弹在世界坐标中的位置
     private BombState state;             // 炸弹状态
     private double fuseTime;             // 剩余引信时间
     private double totalFuseTime;        // 总引信时间
@@ -34,6 +35,22 @@ public class Bomb {
     public Bomb(int x, int y, String ownerId) {
         this.x = x;
         this.y = y;
+        this.worldX = x * 50; // 假设网格大小为50
+        this.worldY = y * 50;
+        this.ownerId = ownerId;
+        this.state = BombState.PLACED;
+        this.totalFuseTime = FUSE_TIME;
+        this.fuseTime = totalFuseTime;
+        this.hasExploded = false;
+        this.explosionDuration = 0.5; // 爆炸持续0.5秒
+        this.explosionRadius = DEFAULT_EXPLOSION_RADIUS;
+    }
+    
+    public Bomb(int x, int y, double worldX, double worldY, String ownerId) {
+        this.x = x;
+        this.y = y;
+        this.worldX = worldX;
+        this.worldY = worldY;
         this.ownerId = ownerId;
         this.state = BombState.PLACED;
         this.totalFuseTime = FUSE_TIME;
@@ -116,6 +133,8 @@ public class Bomb {
     // Getter 和 Setter 方法
     public int getX() { return x; }
     public int getY() { return y; }
+    public double getWorldX() { return worldX; }
+    public double getWorldY() { return worldY; }
     public BombState getState() { return state; }
     public double getFuseTime() { return fuseTime; }
     public double getTotalFuseTime() { return totalFuseTime; }

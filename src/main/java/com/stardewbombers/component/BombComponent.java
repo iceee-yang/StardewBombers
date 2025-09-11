@@ -28,17 +28,18 @@ public class BombComponent {
 	public List<Bomb> getActiveBombs() { return activeBombs; }
 
 	/**
-	 * 放置炸弹（自动网格吸附）
+	 * 放置炸弹（直接放在玩家位置）
 	 */
 	public boolean placeBomb(Point2D worldPosition, long nowMs) {
 		// 仅允许同一时间存在 1 个炸弹
 		if (!activeBombs.isEmpty()) return false;
 		
-		// 网格吸附
+		// 直接使用玩家位置，不进行网格吸附
+		// 将世界坐标转换为网格坐标用于炸弹逻辑
 		int gridX = (int) Math.round(worldPosition.getX() / gridSize);
 		int gridY = (int) Math.round(worldPosition.getY() / gridSize);
 		
-		Bomb bomb = new Bomb(gridX, gridY, ownerId);
+		Bomb bomb = new Bomb(gridX, gridY, worldPosition.getX(), worldPosition.getY(), ownerId);
 		bomb.setExplosionRadius(bombPower);
 		bomb.startTicking();
 		activeBombs.add(bomb);

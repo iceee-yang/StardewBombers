@@ -21,10 +21,10 @@ public class PlayerComponent {
 	public MovementComponent getMovement() { return movement; }
 	public BombComponent getBombs() { return bombs; }
 
-	public void moveUp() { if (player.isAlive()) movement.moveUp(); syncPosition(); }
-	public void moveDown() { if (player.isAlive()) movement.moveDown(); syncPosition(); }
-	public void moveLeft() { if (player.isAlive()) movement.moveLeft(); syncPosition(); }
-	public void moveRight() { if (player.isAlive()) movement.moveRight(); syncPosition(); }
+	public void moveUp() { if (player.isAlive()) movement.moveUp(); }
+	public void moveDown() { if (player.isAlive()) movement.moveDown(); }
+	public void moveLeft() { if (player.isAlive()) movement.moveLeft(); }
+	public void moveRight() { if (player.isAlive()) movement.moveRight(); }
 
 	public boolean placeBomb(long nowMs) {
 		if (!player.isAlive()) return false;
@@ -61,6 +61,7 @@ public class PlayerComponent {
 	public void tick(long nowMs) {
 		player.tick(nowMs);
 		bombs.tick(nowMs);
+		syncPosition(); // 每帧同步移动组件的位置到玩家实体
 	}
 
 	private void syncPosition() {
